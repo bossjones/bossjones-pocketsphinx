@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -44,7 +44,7 @@
  * This is a simple example of pocketsphinx application that uses continuous listening
  * with silence filtering to automatically segment a continuous stream of audio input
  * into utterances that are then decoded.
- * 
+ *
  * Remarks:
  *   - Each utterance is ended when a silence segment of at least 1 sec is recognized.
  *   - Single-threaded implementation for portability.
@@ -71,6 +71,9 @@
 
 #include "pocketsphinx.h"
 
+// Include gearman to send off background jobs.
+#include <libgearman/gearman.h>
+
 static const arg_t cont_args_def[] = {
     POCKETSPHINX_OPTIONS,
     /* Argument file. */
@@ -78,17 +81,17 @@ static const arg_t cont_args_def[] = {
       ARG_STRING,
       NULL,
       "Argument file giving extra arguments." },
-    { "-adcdev", 
-      ARG_STRING, 
-      NULL, 
+    { "-adcdev",
+      ARG_STRING,
+      NULL,
       "Name of audio device to use for input." },
-    { "-infile", 
-      ARG_STRING, 
-      NULL, 
+    { "-infile",
+      ARG_STRING,
+      NULL,
       "Audio file to transcribe." },
-    { "-time", 
-      ARG_BOOLEAN, 
-      "no", 
+    { "-time",
+      ARG_BOOLEAN,
+      "no",
       "Print word times in file transcription." },
     CMDLN_EMPTY_OPTION
 };
@@ -101,26 +104,26 @@ static int32
 ad_file_read(ad_rec_t * ad, int16 * buf, int32 max)
 {
     size_t nread;
-    
+
     nread = fread(buf, sizeof(int16), max, rawfd);
-    
+
     return (nread > 0 ? nread : -1);
 }
 
 static void
 print_word_times(int32 start)
 {
-	ps_seg_t *iter = ps_seg_iter(ps, NULL);
-	while (iter != NULL) {
-		int32 sf, ef, pprob;
-		float conf;
-		
-		ps_seg_frames (iter, &sf, &ef);
-		pprob = ps_seg_prob (iter, NULL, NULL, NULL);
-		conf = logmath_exp(ps_get_logmath(ps), pprob);
-		printf ("%s %f %f %f\n", ps_seg_word (iter), (sf + start) / 100.0, (ef + start) / 100.0, conf);
-		iter = ps_seg_next (iter);
-	}
+        ps_seg_t *iter = ps_seg_iter(ps, NULL);
+        while (iter != NULL) {
+                int32 sf, ef, pprob;
+                float conf;
+
+                ps_seg_frames (iter, &sf, &ef);
+                pprob = ps_seg_prob (iter, NULL, NULL, NULL);
+                conf = logmath_exp(ps_get_logmath(ps), pprob);
+                printf ("%s %f %f %f\n", ps_seg_word (iter), (sf + start) / 100.0, (ef + start) / 100.0, conf);
+                iter = ps_seg_next (iter);
+        }
 }
 
 /*
@@ -137,10 +140,10 @@ recognize_from_file() {
 
     char waveheader[44];
     if ((rawfd = fopen(cmd_ln_str_r(config, "-infile"), "rb")) == NULL) {
-	E_FATAL_SYSTEM("Failed to open file '%s' for reading", 
-			cmd_ln_str_r(config, "-infile"));
+        E_FATAL_SYSTEM("Failed to open file '%s' for reading",
+                        cmd_ln_str_r(config, "-infile"));
     }
-    
+
     fread(waveheader, 1, 44, rawfd);
 
     file_ad.sps = (int32)cmd_ln_float32_r(config, "-samprate");
@@ -155,23 +158,23 @@ recognize_from_file() {
 
     for (;;) {
 
-	while ((k = cont_ad_read(cont, adbuf, 4096)) == 0);
-	
+        while ((k = cont_ad_read(cont, adbuf, 4096)) == 0);
+
         if (k < 0) {
-    	    break;
-    	}
+            break;
+        }
 
         if (ps_start_utt(ps, NULL) < 0)
             E_FATAL("ps_start_utt() failed\n");
 
         ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-        
+
         ts = cont->read_ts;
         start = ((ts - k) * 100.0) / file_ad.sps;
-        
+
         for (;;) {
             if ((k = cont_ad_read(cont, adbuf, 4096)) < 0)
-            	break;
+                break;
 
             if (k == 0) {
                 /*
@@ -191,14 +194,14 @@ recognize_from_file() {
         }
 
         ps_end_utt(ps);
-        
+
         if (cmd_ln_boolean_r(config, "-time")) {
-	    print_word_times(start);
-	} else {
-	    hyp = ps_get_hyp(ps, NULL, &uttid);
+            print_word_times(start);
+        } else {
+            hyp = ps_get_hyp(ps, NULL, &uttid);
             printf("%s: %s\n", uttid, hyp);
         }
-        fflush(stdout);	
+        fflush(stdout);
     }
 
     cont_ad_close(cont);
@@ -225,13 +228,13 @@ sleep_msec(int32 ms)
 /*
  * Main utterance processing loop:
  *     for (;;) {
- * 	   wait for start of next utterance;
- * 	   decode utterance until silence of at least 1 sec observed;
- * 	   print utterance result;
+ *         wait for start of next utterance;
+ *         decode utterance until silence of at least 1 sec observed;
+ *         print utterance result;
  *     }
  */
 static void
-recognize_from_microphone()
+recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
 {
     ad_rec_t *ad;
     int16 adbuf[4096];
@@ -240,6 +243,27 @@ recognize_from_microphone()
     char const *uttid;
     cont_ad_t *cont;
     char word[256];
+    // MOVED TO MAIN //gearman_job_handle_t job_handle;
+
+    // Scarlett variables - gearmand
+    // char *host= NULL;
+    // in_port_t port= 0;
+    // gearman_return_t ret;
+    // gearman_client_st client;
+    // char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+    // bool is_known;
+    // bool is_running;
+    // uint32_t numerator;
+    // uint32_t denominator;
+    // End: Scarlett variable - gearmand
+
+    // MOVED TO MAIN FUNCTION //gearman_client_st *client= gearman_client_create(NULL);
+
+    // MOVED TO MAIN FUNCTION //gearman_return_t ret= gearman_client_add_server(client, "localhost", 4730);
+    // MOVED TO MAIN FUNCTION //if (gearman_failed(ret))
+    // MOVED TO MAIN FUNCTION //{
+    // MOVED TO MAIN FUNCTION //  return EXIT_FAILURE;
+    // MOVED TO MAIN FUNCTION //}
 
     if ((ad = ad_open_dev(cmd_ln_str_r(config, "-adcdev"),
                           (int)cmd_ln_float32_r(config, "-samprate"))) == NULL)
@@ -321,6 +345,36 @@ recognize_from_microphone()
         ps_end_utt(ps);
         hyp = ps_get_hyp(ps, NULL, &uttid);
         printf("%s: %s\n", uttid, hyp);
+
+        // scarlett code
+        printf("RESULT: %s\n", hyp);
+        /////////////////////
+        //// Scarlett
+        ////////////////////
+
+       // OLD // gearman_return_t rc= gearman_client_do_background(client,
+       // OLD //                                                   "scarlettcmd",
+       // OLD //                                                   "unique_value",
+       // OLD //                                                   hyp, strlen(hyp),
+       // OLD //                                                   job_handle);
+
+       gearman_return_t rc= gearman_client_do_background(gclient,
+                                                         "scarlettcmd",
+                                                         "unique_value",
+                                                         hyp, strlen(hyp),
+                                                         jh);
+
+
+        if (gearman_success(rc))
+        {
+          // Make use of value
+          printf("%s\n", jh);
+        }
+
+        /////////////////////
+        //// Scarlett - END
+        ////////////////////
+
         fflush(stdout);
 
         /* Exit if the first word spoken was GOODBYE */
@@ -331,8 +385,11 @@ recognize_from_microphone()
         }
 
         /* Resume A/D recording for next utterance */
-        if (ad_start_rec(ad) < 0)
+        if (ad_start_rec(ad) < 0) {
+
+            gearman_client_free(gclient);
             E_FATAL("Failed to start recording\n");
+        }
     }
 
     cont_ad_close(cont);
@@ -350,6 +407,14 @@ int
 main(int argc, char *argv[])
 {
     char const *cfg;
+    gearman_job_handle_t job_handle;
+    gearman_client_st *client= gearman_client_create(NULL);
+
+    gearman_return_t ret= gearman_client_add_server(client, "localhost", 4730);
+    if (gearman_failed(ret))
+    {
+      return EXIT_FAILURE;
+    }
 
     if (argc == 2) {
         config = cmd_ln_parse_file_r(NULL, cont_args_def, argv[1], TRUE);
@@ -371,18 +436,18 @@ main(int argc, char *argv[])
     E_INFO("%s COMPILED ON: %s, AT: %s\n\n", argv[0], __DATE__, __TIME__);
 
     if (cmd_ln_str_r(config, "-infile") != NULL) {
-	recognize_from_file();
+        recognize_from_file();
     } else {
 
         /* Make sure we exit cleanly (needed for profiling among other things) */
-	/* Signals seem to be broken in arm-wince-pe. */
+        /* Signals seem to be broken in arm-wince-pe. */
 #if !defined(GNUWINCE) && !defined(_WIN32_WCE) && !defined(__SYMBIAN32__)
-	signal(SIGINT, &sighandler);
+        signal(SIGINT, &sighandler);
 #endif
 
         if (setjmp(jbuf) == 0) {
-	    recognize_from_microphone();
-	}
+            recognize_from_microphone(client,job_handle);
+        }
     }
 
     ps_free(ps);
@@ -412,4 +477,4 @@ int wmain(int32 argc, wchar_t *wargv[]) {
     //assuming ASCII parameters
     return main(argc, argv);
 }
-#endif
+#endif              
