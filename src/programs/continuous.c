@@ -236,6 +236,11 @@ sleep_msec(int32 ms)
 static void
 recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
 {
+    // NOTE ABOVE THE ARGUMENTS. THESE WERE ADDED IN MY ATTEMPT TO PASS THE GEARMAN_CLIENT_ST OBJECT INTO THIS FUNCTION
+    /////////////////////
+    //// Scarlett   ^^^^^^^^^^^^^^^^^^ ABOVE
+    ////////////////////
+
     ad_rec_t *ad;
     int16 adbuf[4096];
     int32 k, ts, rem;
@@ -245,17 +250,17 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
     char word[256];
     // MOVED TO MAIN //gearman_job_handle_t job_handle;
 
-    // Scarlett variables - gearmand
-    // char *host= NULL;
-    // in_port_t port= 0;
-    // gearman_return_t ret;
-    // gearman_client_st client;
-    // char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-    // bool is_known;
-    // bool is_running;
-    // uint32_t numerator;
-    // uint32_t denominator;
-    // End: Scarlett variable - gearmand
+    // NOT USING //Scarlett variables - gearmand
+    // NOT USING //char *host= NULL;
+    // NOT USING //in_port_t port= 0;
+    // NOT USING //gearman_return_t ret;
+    // NOT USING //gearman_client_st client;
+    // NOT USING //char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+    // NOT USING //bool is_known;
+    // NOT USING //bool is_running;
+    // NOT USING //uint32_t numerator;
+    // NOT USING //uint32_t denominator;
+    // NOT USING //End: Scarlett variable - gearmand
 
     // MOVED TO MAIN FUNCTION //gearman_client_st *client= gearman_client_create(NULL);
 
@@ -352,17 +357,21 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
         //// Scarlett
         ////////////////////
 
-       // OLD // gearman_return_t rc= gearman_client_do_background(client,
-       // OLD //                                                   "scarlettcmd",
-       // OLD //                                                   "unique_value",
-       // OLD //                                                   hyp, strlen(hyp),
-       // OLD //                                                   job_handle);
+        // OLD // gearman_return_t rc= gearman_client_do_background(client,
+        // OLD //                                                   "scarlettcmd",
+        // OLD //                                                   "unique_value",
+        // OLD //                                                   hyp, strlen(hyp),
+        // OLD //                                                   job_handle);
 
-       gearman_return_t rc= gearman_client_do_background(gclient,
-                                                         "scarlettcmd",
-                                                         "unique_value",
-                                                         hyp, strlen(hyp),
-                                                         jh);
+        /////////////////////
+        //// Scarlett
+        ////////////////////
+
+        gearman_return_t rc= gearman_client_do_background(gclient,
+                                                          "scarlettcmd",
+                                                          NULL,
+                                                          hyp, strlen(hyp),
+                                                          jh);
 
 
         if (gearman_success(rc))
@@ -407,6 +416,9 @@ int
 main(int argc, char *argv[])
 {
     char const *cfg;
+    /////////////////////
+    //// Scarlett
+    ////////////////////
     gearman_job_handle_t job_handle;
     gearman_client_st *client= gearman_client_create(NULL);
 
@@ -415,6 +427,9 @@ main(int argc, char *argv[])
     {
       return EXIT_FAILURE;
     }
+    /////////////////////
+    //// Scarlett
+    ////////////////////
 
     if (argc == 2) {
         config = cmd_ln_parse_file_r(NULL, cont_args_def, argv[1], TRUE);
@@ -446,6 +461,9 @@ main(int argc, char *argv[])
 #endif
 
         if (setjmp(jbuf) == 0) {
+            /////////////////////
+            //// Scarlett
+            ////////////////////
             recognize_from_microphone(client,job_handle);
         }
     }
