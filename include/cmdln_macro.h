@@ -142,7 +142,7 @@
       "Run forward flat-lexicon search over word lattice (2nd pass)" },                         \
 { "-bestpath",                                                                                  \
       ARG_BOOLEAN,                                                                              \
-      "yes",                                                                                    \
+      "no",                                                                                    \
       "Run bestpath (Dijkstra) search over word lattice (3rd pass)" },                          \
 { "-backtrace",                                                                                 \
       ARG_BOOLEAN,                                                                              \
@@ -228,7 +228,7 @@
       "Inverse of acoustic model scale for confidence score calculation" },		\
 { "-wip",										\
       ARG_FLOAT32,									\
-      "0.65",										\
+      "1e-4",										\
       "Word insertion penalty" },							\
 { "-nwpen",										\
       ARG_FLOAT32,									\
@@ -244,7 +244,7 @@
       "Unigram weight" }, 								\
 { "-silprob",										\
       ARG_FLOAT32,									\
-      "0.005",										\
+      "0.1",										\
       "Silence word transition probability" },						\
 { "-fillprob",										\
       ARG_FLOAT32,									\
