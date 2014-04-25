@@ -54,16 +54,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#if !defined(_WIN32_WCE)
 #include <signal.h>
 #include <setjmp.h>
-#endif
-#if defined(WIN32) && !defined(GNUWINCE)
-#include <time.h>
-#else
 #include <sys/types.h>
 #include <sys/time.h>
-#endif
 
 #include <sphinxbase/err.h>
 #include <sphinxbase/ad.h>
@@ -98,115 +92,115 @@ static const arg_t cont_args_def[] = {
 
 static ps_decoder_t *ps;
 static cmd_ln_t *config;
-static FILE* rawfd;
-
-static int32
-ad_file_read(ad_rec_t * ad, int16 * buf, int32 max)
-{
-    size_t nread;
-
-    nread = fread(buf, sizeof(int16), max, rawfd);
-
-    return (nread > 0 ? nread : -1);
-}
-
-static void
-print_word_times(int32 start)
-{
-        ps_seg_t *iter = ps_seg_iter(ps, NULL);
-        while (iter != NULL) {
-                int32 sf, ef, pprob;
-                float conf;
-
-                ps_seg_frames (iter, &sf, &ef);
-                pprob = ps_seg_prob (iter, NULL, NULL, NULL);
-                conf = logmath_exp(ps_get_logmath(ps), pprob);
-                printf ("%s %f %f %f\n", ps_seg_word (iter), (sf + start) / 100.0, (ef + start) / 100.0, conf);
-                iter = ps_seg_next (iter);
-        }
-}
-
-/*
- * Continuous recognition from a file
- */
-static void
-recognize_from_file() {
-    cont_ad_t *cont;
-    ad_rec_t file_ad = {0};
-    int16 adbuf[4096];
-    const char* hyp;
-    const char* uttid;
-    int32 k, ts, start;
-
-    char waveheader[44];
-    if ((rawfd = fopen(cmd_ln_str_r(config, "-infile"), "rb")) == NULL) {
-        E_FATAL_SYSTEM("Failed to open file '%s' for reading",
-                        cmd_ln_str_r(config, "-infile"));
-    }
-
-    fread(waveheader, 1, 44, rawfd);
-
-    file_ad.sps = (int32)cmd_ln_float32_r(config, "-samprate");
-    file_ad.bps = sizeof(int16);
-
-    if ((cont = cont_ad_init(&file_ad, ad_file_read)) == NULL) {
-        E_FATAL("Failed to initialize voice activity detection");
-    }
-    if (cont_ad_calib(cont) < 0)
-        E_FATAL("Failed to calibrate voice activity detection\n");
-    rewind (rawfd);
-
-    for (;;) {
-
-        while ((k = cont_ad_read(cont, adbuf, 4096)) == 0);
-
-        if (k < 0) {
-            break;
-        }
-
-        if (ps_start_utt(ps, NULL) < 0)
-            E_FATAL("ps_start_utt() failed\n");
-
-        ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-
-        ts = cont->read_ts;
-        start = ((ts - k) * 100.0) / file_ad.sps;
-
-        for (;;) {
-            if ((k = cont_ad_read(cont, adbuf, 4096)) < 0)
-                break;
-
-            if (k == 0) {
-                /*
-                 * No speech data available; check current timestamp with most recent
-                 * speech to see if more than 1 sec elapsed.  If so, end of utterance.
-                 */
-                if ((cont->read_ts - ts) > DEFAULT_SAMPLES_PER_SEC)
-                    break;
-            }
-            else {
-                /* New speech data received; note current timestamp */
-                ts = cont->read_ts;
-            }
-
-
-            ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-        }
-
-        ps_end_utt(ps);
-
-        if (cmd_ln_boolean_r(config, "-time")) {
-            print_word_times(start);
-        } else {
-            hyp = ps_get_hyp(ps, NULL, &uttid);
-            printf("%s: %s\n", uttid, hyp);
-        }
-        fflush(stdout);
-    }
-
-    cont_ad_close(cont);
-    fclose(rawfd);
-}
+// DISABLED //static FILE* rawfd;
+// DISABLED //
+// DISABLED //static int32
+// DISABLED //ad_file_read(ad_rec_t * ad, int16 * buf, int32 max)
+// DISABLED //{
+// DISABLED //    size_t nread;
+// DISABLED //
+// DISABLED //    nread = fread(buf, sizeof(int16), max, rawfd);
+// DISABLED //
+// DISABLED //    return (nread > 0 ? nread : -1);
+// DISABLED //}
+// DISABLED //
+// DISABLED //static void
+// DISABLED //print_word_times(int32 start)
+// DISABLED //{
+// DISABLED //        ps_seg_t *iter = ps_seg_iter(ps, NULL);
+// DISABLED //        while (iter != NULL) {
+// DISABLED //                int32 sf, ef, pprob;
+// DISABLED //                float conf;
+// DISABLED //
+// DISABLED //                ps_seg_frames (iter, &sf, &ef);
+// DISABLED //                pprob = ps_seg_prob (iter, NULL, NULL, NULL);
+// DISABLED //                conf = logmath_exp(ps_get_logmath(ps), pprob);
+// DISABLED //                printf ("%s %f %f %f\n", ps_seg_word (iter), (sf + start) / 100.0, (ef + start) / 100.0, conf);
+// DISABLED //                iter = ps_seg_next (iter);
+// DISABLED //        }
+// DISABLED //}
+// DISABLED //
+// DISABLED ///*
+// DISABLED // * Continuous recognition from a file
+// DISABLED // */
+// DISABLED //static void
+// DISABLED //recognize_from_file() {
+// DISABLED //    cont_ad_t *cont;
+// DISABLED //    ad_rec_t file_ad = {0};
+// DISABLED //    int16 adbuf[4096];
+// DISABLED //    const char* hyp;
+// DISABLED //    const char* uttid;
+// DISABLED //    int32 k, ts, start;
+// DISABLED //
+// DISABLED //    char waveheader[44];
+// DISABLED //    if ((rawfd = fopen(cmd_ln_str_r(config, "-infile"), "rb")) == NULL) {
+// DISABLED //        E_FATAL_SYSTEM("Failed to open file '%s' for reading",
+// DISABLED //                        cmd_ln_str_r(config, "-infile"));
+// DISABLED //    }
+// DISABLED //
+// DISABLED //    fread(waveheader, 1, 44, rawfd);
+// DISABLED //
+// DISABLED //    file_ad.sps = (int32)cmd_ln_float32_r(config, "-samprate");
+// DISABLED //    file_ad.bps = sizeof(int16);
+// DISABLED //
+// DISABLED //    if ((cont = cont_ad_init(&file_ad, ad_file_read)) == NULL) {
+// DISABLED //        E_FATAL("Failed to initialize voice activity detection");
+// DISABLED //    }
+// DISABLED //    if (cont_ad_calib(cont) < 0)
+// DISABLED //        E_FATAL("Failed to calibrate voice activity detection\n");
+// DISABLED //    rewind (rawfd);
+// DISABLED //
+// DISABLED //    for (;;) {
+// DISABLED //
+// DISABLED //        while ((k = cont_ad_read(cont, adbuf, 4096)) == 0);
+// DISABLED //
+// DISABLED //        if (k < 0) {
+// DISABLED //            break;
+// DISABLED //        }
+// DISABLED //
+// DISABLED //        if (ps_start_utt(ps, NULL) < 0)
+// DISABLED //            E_FATAL("ps_start_utt() failed\n");
+// DISABLED //
+// DISABLED //        ps_process_raw(ps, adbuf, k, FALSE, FALSE);
+// DISABLED //
+// DISABLED //        ts = cont->read_ts;
+// DISABLED //        start = ((ts - k) * 100.0) / file_ad.sps;
+// DISABLED //
+// DISABLED //        for (;;) {
+// DISABLED //            if ((k = cont_ad_read(cont, adbuf, 4096)) < 0)
+// DISABLED //                break;
+// DISABLED //
+// DISABLED //            if (k == 0) {
+// DISABLED //                /*
+// DISABLED //                 * No speech data available; check current timestamp with most recent
+// DISABLED //                 * speech to see if more than 1 sec elapsed.  If so, end of utterance.
+// DISABLED //                 */
+// DISABLED //                if ((cont->read_ts - ts) > DEFAULT_SAMPLES_PER_SEC)
+// DISABLED //                    break;
+// DISABLED //            }
+// DISABLED //            else {
+// DISABLED //                /* New speech data received; note current timestamp */
+// DISABLED //                ts = cont->read_ts;
+// DISABLED //            }
+// DISABLED //
+// DISABLED //
+// DISABLED //            ps_process_raw(ps, adbuf, k, FALSE, FALSE);
+// DISABLED //        }
+// DISABLED //
+// DISABLED //        ps_end_utt(ps);
+// DISABLED //
+// DISABLED //        if (cmd_ln_boolean_r(config, "-time")) {
+// DISABLED //            print_word_times(start);
+// DISABLED //        } else {
+// DISABLED //            hyp = ps_get_hyp(ps, NULL, &uttid);
+// DISABLED //            printf("%s: %s\n", uttid, hyp);
+// DISABLED //        }
+// DISABLED //        fflush(stdout);
+// DISABLED //    }
+// DISABLED //
+// DISABLED //    cont_ad_close(cont);
+// DISABLED //    fclose(rawfd);
+// DISABLED //}
 
 /* Sleep for specified msec */
 static void
@@ -248,27 +242,6 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
     char const *uttid;
     cont_ad_t *cont;
     char word[256];
-    // MOVED TO MAIN //gearman_job_handle_t job_handle;
-
-    // NOT USING //Scarlett variables - gearmand
-    // NOT USING //char *host= NULL;
-    // NOT USING //in_port_t port= 0;
-    // NOT USING //gearman_return_t ret;
-    // NOT USING //gearman_client_st client;
-    // NOT USING //char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-    // NOT USING //bool is_known;
-    // NOT USING //bool is_running;
-    // NOT USING //uint32_t numerator;
-    // NOT USING //uint32_t denominator;
-    // NOT USING //End: Scarlett variable - gearmand
-
-    // MOVED TO MAIN FUNCTION //gearman_client_st *client= gearman_client_create(NULL);
-
-    // MOVED TO MAIN FUNCTION //gearman_return_t ret= gearman_client_add_server(client, "localhost", 4730);
-    // MOVED TO MAIN FUNCTION //if (gearman_failed(ret))
-    // MOVED TO MAIN FUNCTION //{
-    // MOVED TO MAIN FUNCTION //  return EXIT_FAILURE;
-    // MOVED TO MAIN FUNCTION //}
 
     if ((ad = ad_open_dev(cmd_ln_str_r(config, "-adcdev"),
                           (int)cmd_ln_float32_r(config, "-samprate"))) == NULL)
@@ -428,7 +401,7 @@ main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
     /////////////////////
-    //// Scarlett
+    //// Scarlett - END
     ////////////////////
 
     if (argc == 2) {
@@ -450,10 +423,6 @@ main(int argc, char *argv[])
 
     E_INFO("%s COMPILED ON: %s, AT: %s\n\n", argv[0], __DATE__, __TIME__);
 
-    if (cmd_ln_str_r(config, "-infile") != NULL) {
-        recognize_from_file();
-    } else {
-
         /* Make sure we exit cleanly (needed for profiling among other things) */
         /* Signals seem to be broken in arm-wince-pe. */
 #if !defined(GNUWINCE) && !defined(_WIN32_WCE) && !defined(__SYMBIAN32__)
@@ -471,28 +440,3 @@ main(int argc, char *argv[])
     ps_free(ps);
     return 0;
 }
-
-/** Silvio Moioli: Windows CE/Mobile entry point added. */
-#if defined(_WIN32_WCE)
-#pragma comment(linker,"/entry:mainWCRTStartup")
-#include <windows.h>
-
-//Windows Mobile has the Unicode main only
-int wmain(int32 argc, wchar_t *wargv[]) {
-    char** argv;
-    size_t wlen;
-    size_t len;
-    int i;
-
-    argv = malloc(argc*sizeof(char*));
-    for (i=0; i<argc; i++){
-        wlen = lstrlenW(wargv[i]);
-        len = wcstombs(NULL, wargv[i], wlen);
-        argv[i] = malloc(len+1);
-        wcstombs(argv[i], wargv[i], wlen);
-    }
-
-    //assuming ASCII parameters
-    return main(argc, argv);
-}
-#endif              
