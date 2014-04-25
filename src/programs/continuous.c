@@ -92,115 +92,6 @@ static const arg_t cont_args_def[] = {
 
 static ps_decoder_t *ps;
 static cmd_ln_t *config;
-// DISABLED //static FILE* rawfd;
-// DISABLED //
-// DISABLED //static int32
-// DISABLED //ad_file_read(ad_rec_t * ad, int16 * buf, int32 max)
-// DISABLED //{
-// DISABLED //    size_t nread;
-// DISABLED //
-// DISABLED //    nread = fread(buf, sizeof(int16), max, rawfd);
-// DISABLED //
-// DISABLED //    return (nread > 0 ? nread : -1);
-// DISABLED //}
-// DISABLED //
-// DISABLED //static void
-// DISABLED //print_word_times(int32 start)
-// DISABLED //{
-// DISABLED //        ps_seg_t *iter = ps_seg_iter(ps, NULL);
-// DISABLED //        while (iter != NULL) {
-// DISABLED //                int32 sf, ef, pprob;
-// DISABLED //                float conf;
-// DISABLED //
-// DISABLED //                ps_seg_frames (iter, &sf, &ef);
-// DISABLED //                pprob = ps_seg_prob (iter, NULL, NULL, NULL);
-// DISABLED //                conf = logmath_exp(ps_get_logmath(ps), pprob);
-// DISABLED //                printf ("%s %f %f %f\n", ps_seg_word (iter), (sf + start) / 100.0, (ef + start) / 100.0, conf);
-// DISABLED //                iter = ps_seg_next (iter);
-// DISABLED //        }
-// DISABLED //}
-// DISABLED //
-// DISABLED ///*
-// DISABLED // * Continuous recognition from a file
-// DISABLED // */
-// DISABLED //static void
-// DISABLED //recognize_from_file() {
-// DISABLED //    cont_ad_t *cont;
-// DISABLED //    ad_rec_t file_ad = {0};
-// DISABLED //    int16 adbuf[4096];
-// DISABLED //    const char* hyp;
-// DISABLED //    const char* uttid;
-// DISABLED //    int32 k, ts, start;
-// DISABLED //
-// DISABLED //    char waveheader[44];
-// DISABLED //    if ((rawfd = fopen(cmd_ln_str_r(config, "-infile"), "rb")) == NULL) {
-// DISABLED //        E_FATAL_SYSTEM("Failed to open file '%s' for reading",
-// DISABLED //                        cmd_ln_str_r(config, "-infile"));
-// DISABLED //    }
-// DISABLED //
-// DISABLED //    fread(waveheader, 1, 44, rawfd);
-// DISABLED //
-// DISABLED //    file_ad.sps = (int32)cmd_ln_float32_r(config, "-samprate");
-// DISABLED //    file_ad.bps = sizeof(int16);
-// DISABLED //
-// DISABLED //    if ((cont = cont_ad_init(&file_ad, ad_file_read)) == NULL) {
-// DISABLED //        E_FATAL("Failed to initialize voice activity detection");
-// DISABLED //    }
-// DISABLED //    if (cont_ad_calib(cont) < 0)
-// DISABLED //        E_FATAL("Failed to calibrate voice activity detection\n");
-// DISABLED //    rewind (rawfd);
-// DISABLED //
-// DISABLED //    for (;;) {
-// DISABLED //
-// DISABLED //        while ((k = cont_ad_read(cont, adbuf, 4096)) == 0);
-// DISABLED //
-// DISABLED //        if (k < 0) {
-// DISABLED //            break;
-// DISABLED //        }
-// DISABLED //
-// DISABLED //        if (ps_start_utt(ps, NULL) < 0)
-// DISABLED //            E_FATAL("ps_start_utt() failed\n");
-// DISABLED //
-// DISABLED //        ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-// DISABLED //
-// DISABLED //        ts = cont->read_ts;
-// DISABLED //        start = ((ts - k) * 100.0) / file_ad.sps;
-// DISABLED //
-// DISABLED //        for (;;) {
-// DISABLED //            if ((k = cont_ad_read(cont, adbuf, 4096)) < 0)
-// DISABLED //                break;
-// DISABLED //
-// DISABLED //            if (k == 0) {
-// DISABLED //                /*
-// DISABLED //                 * No speech data available; check current timestamp with most recent
-// DISABLED //                 * speech to see if more than 1 sec elapsed.  If so, end of utterance.
-// DISABLED //                 */
-// DISABLED //                if ((cont->read_ts - ts) > DEFAULT_SAMPLES_PER_SEC)
-// DISABLED //                    break;
-// DISABLED //            }
-// DISABLED //            else {
-// DISABLED //                /* New speech data received; note current timestamp */
-// DISABLED //                ts = cont->read_ts;
-// DISABLED //            }
-// DISABLED //
-// DISABLED //
-// DISABLED //            ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-// DISABLED //        }
-// DISABLED //
-// DISABLED //        ps_end_utt(ps);
-// DISABLED //
-// DISABLED //        if (cmd_ln_boolean_r(config, "-time")) {
-// DISABLED //            print_word_times(start);
-// DISABLED //        } else {
-// DISABLED //            hyp = ps_get_hyp(ps, NULL, &uttid);
-// DISABLED //            printf("%s: %s\n", uttid, hyp);
-// DISABLED //        }
-// DISABLED //        fflush(stdout);
-// DISABLED //    }
-// DISABLED //
-// DISABLED //    cont_ad_close(cont);
-// DISABLED //    fclose(rawfd);
-// DISABLED //}
 
 /* Sleep for specified msec */
 static void
@@ -326,20 +217,7 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
 
         // scarlett code
         printf("RESULT: %s\n", hyp);
-        /////////////////////
-        //// Scarlett
-        ////////////////////
-
-        // OLD // gearman_return_t rc= gearman_client_do_background(client,
-        // OLD //                                                   "scarlettcmd",
-        // OLD //                                                   "unique_value",
-        // OLD //                                                   hyp, strlen(hyp),
-        // OLD //                                                   job_handle);
-
-        /////////////////////
-        //// Scarlett
-        ////////////////////
-
+      
         gearman_return_t rc= gearman_client_do_background(gclient,
                                                           "scarlettcmd",
                                                           NULL,
@@ -353,10 +231,6 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
           printf("%s\n", jh);
         }
 
-        /////////////////////
-        //// Scarlett - END
-        ////////////////////
-
         fflush(stdout);
 
         /* Exit if the first word spoken was GOODBYE */
@@ -368,7 +242,6 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
 
         /* Resume A/D recording for next utterance */
         if (ad_start_rec(ad) < 0) {
-
             gearman_client_free(gclient);
             E_FATAL("Failed to start recording\n");
         }
@@ -389,9 +262,6 @@ int
 main(int argc, char *argv[])
 {
     char const *cfg;
-    /////////////////////
-    //// Scarlett
-    ////////////////////
     gearman_job_handle_t job_handle;
     gearman_client_st *client= gearman_client_create(NULL);
 
@@ -400,9 +270,6 @@ main(int argc, char *argv[])
     {
       return EXIT_FAILURE;
     }
-    /////////////////////
-    //// Scarlett - END
-    ////////////////////
 
     if (argc == 2) {
         config = cmd_ln_parse_file_r(NULL, cont_args_def, argv[1], TRUE);
@@ -430,11 +297,7 @@ main(int argc, char *argv[])
 #endif
 
         if (setjmp(jbuf) == 0) {
-            /////////////////////
-            //// Scarlett
-            ////////////////////
             recognize_from_microphone(client,job_handle);
-        }
     }
 
     ps_free(ps);
