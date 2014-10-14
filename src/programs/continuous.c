@@ -71,9 +71,6 @@
 
 #include "pocketsphinx.h"
 
-// Include gearman to send off background jobs.
-#include <libgearman/gearman.h>
-
 static const arg_t cont_args_def[] = {
     POCKETSPHINX_OPTIONS,
     /* Argument file. */
@@ -113,17 +110,17 @@ ad_file_read(ad_rec_t * ad, int16 * buf, int32 max)
 static void
 print_word_times(int32 start)
 {
-        ps_seg_t *iter = ps_seg_iter(ps, NULL);
-        while (iter != NULL) {
-                int32 sf, ef, pprob;
-                float conf;
+    ps_seg_t *iter = ps_seg_iter(ps, NULL);
+    while (iter != NULL) {
+        int32 sf, ef, pprob;
+        float conf;
 
-                ps_seg_frames (iter, &sf, &ef);
-                pprob = ps_seg_prob (iter, NULL, NULL, NULL);
-                conf = logmath_exp(ps_get_logmath(ps), pprob);
-                printf ("%s %f %f %f\n", ps_seg_word (iter), (sf + start) / 100.0, (ef + start) / 100.0, conf);
-                iter = ps_seg_next (iter);
-        }
+        ps_seg_frames (iter, &sf, &ef);
+        pprob = ps_seg_prob (iter, NULL, NULL, NULL);
+        conf = logmath_exp(ps_get_logmath(ps), pprob);
+        printf ("%s %f %f %f\n", ps_seg_word (iter), (sf + start) / 100.0, (ef + start) / 100.0, conf);
+        iter = ps_seg_next (iter);
+    }
 }
 
 /*
@@ -140,8 +137,8 @@ recognize_from_file() {
 
     char waveheader[44];
     if ((rawfd = fopen(cmd_ln_str_r(config, "-infile"), "rb")) == NULL) {
-        E_FATAL_SYSTEM("Failed to open file '%s' for reading",
-                        cmd_ln_str_r(config, "-infile"));
+    E_FATAL_SYSTEM("Failed to open file '%s' for reading",
+            cmd_ln_str_r(config, "-infile"));
     }
 
     fread(waveheader, 1, 44, rawfd);
@@ -158,7 +155,7 @@ recognize_from_file() {
 
     for (;;) {
 
-        while ((k = cont_ad_read(cont, adbuf, 4096)) == 0);
+    while ((k = cont_ad_read(cont, adbuf, 4096)) == 0);
 
         if (k < 0) {
             break;
@@ -196,9 +193,9 @@ recognize_from_file() {
         ps_end_utt(ps);
 
         if (cmd_ln_boolean_r(config, "-time")) {
-            print_word_times(start);
-        } else {
-            hyp = ps_get_hyp(ps, NULL, &uttid);
+        print_word_times(start);
+    } else {
+        hyp = ps_get_hyp(ps, NULL, &uttid);
             printf("%s: %s\n", uttid, hyp);
         }
         fflush(stdout);
@@ -228,19 +225,14 @@ sleep_msec(int32 ms)
 /*
  * Main utterance processing loop:
  *     for (;;) {
- *         wait for start of next utterance;
- *         decode utterance until silence of at least 1 sec observed;
- *         print utterance result;
+ *     wait for start of next utterance;
+ *     decode utterance until silence of at least 1 sec observed;
+ *     print utterance result;
  *     }
  */
 static void
-recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
+recognize_from_microphone()
 {
-    // NOTE ABOVE THE ARGUMENTS. THESE WERE ADDED IN MY ATTEMPT TO PASS THE GEARMAN_CLIENT_ST OBJECT INTO THIS FUNCTION
-    /////////////////////
-    //// Scarlett   ^^^^^^^^^^^^^^^^^^ ABOVE
-    ////////////////////
-
     ad_rec_t *ad;
     int16 adbuf[4096];
     int32 k, ts, rem;
@@ -248,27 +240,6 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
     char const *uttid;
     cont_ad_t *cont;
     char word[256];
-    // MOVED TO MAIN //gearman_job_handle_t job_handle;
-
-    // NOT USING //Scarlett variables - gearmand
-    // NOT USING //char *host= NULL;
-    // NOT USING //in_port_t port= 0;
-    // NOT USING //gearman_return_t ret;
-    // NOT USING //gearman_client_st client;
-    // NOT USING //char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-    // NOT USING //bool is_known;
-    // NOT USING //bool is_running;
-    // NOT USING //uint32_t numerator;
-    // NOT USING //uint32_t denominator;
-    // NOT USING //End: Scarlett variable - gearmand
-
-    // MOVED TO MAIN FUNCTION //gearman_client_st *client= gearman_client_create(NULL);
-
-    // MOVED TO MAIN FUNCTION //gearman_return_t ret= gearman_client_add_server(client, "localhost", 4730);
-    // MOVED TO MAIN FUNCTION //if (gearman_failed(ret))
-    // MOVED TO MAIN FUNCTION //{
-    // MOVED TO MAIN FUNCTION //  return EXIT_FAILURE;
-    // MOVED TO MAIN FUNCTION //}
 
     if ((ad = ad_open_dev(cmd_ln_str_r(config, "-adcdev"),
                           (int)cmd_ln_float32_r(config, "-samprate"))) == NULL)
@@ -350,40 +321,6 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
         ps_end_utt(ps);
         hyp = ps_get_hyp(ps, NULL, &uttid);
         printf("%s: %s\n", uttid, hyp);
-
-        // scarlett code
-        printf("RESULT: %s\n", hyp);
-        /////////////////////
-        //// Scarlett
-        ////////////////////
-
-        // OLD // gearman_return_t rc= gearman_client_do_background(client,
-        // OLD //                                                   "scarlettcmd",
-        // OLD //                                                   "unique_value",
-        // OLD //                                                   hyp, strlen(hyp),
-        // OLD //                                                   job_handle);
-
-        /////////////////////
-        //// Scarlett
-        ////////////////////
-
-        gearman_return_t rc= gearman_client_do_background(gclient,
-                                                          "scarlettcmd",
-                                                          NULL,
-                                                          hyp, strlen(hyp),
-                                                          jh);
-
-
-        if (gearman_success(rc))
-        {
-          // Make use of value
-          printf("%s\n", jh);
-        }
-
-        /////////////////////
-        //// Scarlett - END
-        ////////////////////
-
         fflush(stdout);
 
         /* Exit if the first word spoken was GOODBYE */
@@ -394,11 +331,8 @@ recognize_from_microphone( gearman_client_st *gclient, gearman_job_handle_t jh)
         }
 
         /* Resume A/D recording for next utterance */
-        if (ad_start_rec(ad) < 0) {
-
-            gearman_client_free(gclient);
+        if (ad_start_rec(ad) < 0)
             E_FATAL("Failed to start recording\n");
-        }
     }
 
     cont_ad_close(cont);
@@ -416,20 +350,6 @@ int
 main(int argc, char *argv[])
 {
     char const *cfg;
-    /////////////////////
-    //// Scarlett
-    ////////////////////
-    gearman_job_handle_t job_handle;
-    gearman_client_st *client= gearman_client_create(NULL);
-
-    gearman_return_t ret= gearman_client_add_server(client, "localhost", 4730);
-    if (gearman_failed(ret))
-    {
-      return EXIT_FAILURE;
-    }
-    /////////////////////
-    //// Scarlett
-    ////////////////////
 
     if (argc == 2) {
         config = cmd_ln_parse_file_r(NULL, cont_args_def, argv[1], TRUE);
@@ -451,21 +371,18 @@ main(int argc, char *argv[])
     E_INFO("%s COMPILED ON: %s, AT: %s\n\n", argv[0], __DATE__, __TIME__);
 
     if (cmd_ln_str_r(config, "-infile") != NULL) {
-        recognize_from_file();
+    recognize_from_file();
     } else {
 
         /* Make sure we exit cleanly (needed for profiling among other things) */
-        /* Signals seem to be broken in arm-wince-pe. */
+    /* Signals seem to be broken in arm-wince-pe. */
 #if !defined(GNUWINCE) && !defined(_WIN32_WCE) && !defined(__SYMBIAN32__)
-        signal(SIGINT, &sighandler);
+    signal(SIGINT, &sighandler);
 #endif
 
         if (setjmp(jbuf) == 0) {
-            /////////////////////
-            //// Scarlett
-            ////////////////////
-            recognize_from_microphone(client,job_handle);
-        }
+        recognize_from_microphone();
+    }
     }
 
     ps_free(ps);
@@ -495,4 +412,4 @@ int wmain(int32 argc, wchar_t *wargv[]) {
     //assuming ASCII parameters
     return main(argc, argv);
 }
-#endif              
+#endif
