@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -142,7 +142,7 @@
       "Run forward flat-lexicon search over word lattice (2nd pass)" },                         \
 { "-bestpath",                                                                                  \
       ARG_BOOLEAN,                                                                              \
-      "yes",                                                                                    \
+      "no",                                                                                    \
       "Run bestpath (Dijkstra) search over word lattice (3rd pass)" },                          \
 { "-backtrace",                                                                                 \
       ARG_BOOLEAN,                                                                              \
@@ -166,11 +166,11 @@
       "Nodes ignored in lattice construction if they persist for fewer than N frames" },        \
 { "-fwdflatefwid",                                                                              \
       ARG_INT32,                                                                                \
-      "4",                                                                     	                \
+      "4",                                                                                      \
       "Minimum number of end frames for a word to be searched in fwdflat search" },             \
 { "-fwdflatsfwin",                                                                              \
       ARG_INT32,                                                                                \
-      "25",                                                                    	                \
+      "25",                                                                                     \
       "Window of frames in lattice to search for successor words in fwdflat search " }
 
 /** Command-line options for finite state grammars. */
@@ -198,57 +198,57 @@
 
 /** Command-line options for statistical language models. */
 #define POCKETSPHINX_NGRAM_OPTIONS \
-{ "-lm",										\
-      ARG_STRING,									\
-      NULL,										\
-      "Word trigram language model input file" },					\
-{ "-lmctl",										\
-      ARG_STRING,									\
-      NULL,										\
-      "Specify a set of language model\n"},						\
-{ "-lmname",										\
-      ARG_STRING,									\
-      "default",									\
-      "Which language model in -lmctl to use by default"},				\
-{ "-lw",										\
-      ARG_FLOAT32,									\
-      "6.5",										\
-      "Language model probability weight" },						\
-{ "-fwdflatlw",										\
-      ARG_FLOAT32,									\
-      "8.5",										\
-      "Language model probability weight for flat lexicon (2nd pass) decoding" },	\
-{ "-bestpathlw",									\
-      ARG_FLOAT32,									\
-      "9.5",										\
-      "Language model probability weight for bestpath search" },			\
-{ "-ascale",										\
-      ARG_FLOAT32,									\
-      "20.0",										\
-      "Inverse of acoustic model scale for confidence score calculation" },		\
-{ "-wip",										\
-      ARG_FLOAT32,									\
-      "0.65",										\
-      "Word insertion penalty" },							\
-{ "-nwpen",										\
-      ARG_FLOAT32,									\
-      "1.0",										\
-      "New word transition penalty" },							\
-{ "-pip",										\
-      ARG_FLOAT32,									\
-      "1.0",										\
-      "Phone insertion penalty" },							\
-{ "-uw",										\
-      ARG_FLOAT32,									\
-      "1.0",										\
-      "Unigram weight" }, 								\
-{ "-silprob",										\
-      ARG_FLOAT32,									\
-      "0.005",										\
-      "Silence word transition probability" },						\
-{ "-fillprob",										\
-      ARG_FLOAT32,									\
-      "1e-8",										\
+{ "-lm",                    \
+      ARG_STRING,                 \
+      NULL,                   \
+      "Word trigram language model input file" },         \
+{ "-lmctl",                   \
+      ARG_STRING,                 \
+      NULL,                   \
+      "Specify a set of language model\n"},           \
+{ "-lmname",                    \
+      ARG_STRING,                 \
+      "default",                  \
+      "Which language model in -lmctl to use by default"},        \
+{ "-lw",                    \
+      ARG_FLOAT32,                  \
+      "6.5",                    \
+      "Language model probability weight" },            \
+{ "-fwdflatlw",                   \
+      ARG_FLOAT32,                  \
+      "8.5",                    \
+      "Language model probability weight for flat lexicon (2nd pass) decoding" }, \
+{ "-bestpathlw",                  \
+      ARG_FLOAT32,                  \
+      "9.5",                    \
+      "Language model probability weight for bestpath search" },      \
+{ "-ascale",                    \
+      ARG_FLOAT32,                  \
+      "20.0",                   \
+      "Inverse of acoustic model scale for confidence score calculation" },   \
+{ "-wip",                   \
+      ARG_FLOAT32,                  \
+      "1e-4",                   \
+      "Word insertion penalty" },             \
+{ "-nwpen",                   \
+      ARG_FLOAT32,                  \
+      "1.0",                    \
+      "New word transition penalty" },              \
+{ "-pip",                   \
+      ARG_FLOAT32,                  \
+      "1.0",                    \
+      "Phone insertion penalty" },              \
+{ "-uw",                    \
+      ARG_FLOAT32,                  \
+      "1.0",                    \
+      "Unigram weight" },                 \
+{ "-silprob",                   \
+      ARG_FLOAT32,                  \
+      "0.1",                    \
+      "Silence word transition probability" },            \
+{ "-fillprob",                    \
+      ARG_FLOAT32,                  \
+      "1e-8",                   \
         "Filler word transition probability" }, \
 { "-bghist",   \
       ARG_BOOLEAN, \
@@ -261,25 +261,25 @@
 
 /** Command-line options for dictionaries. */
 #define POCKETSPHINX_DICT_OPTIONS \
-    { "-dict",							\
-      REQARG_STRING,						\
-      NULL,							\
-      "Main pronunciation dictionary (lexicon) input file" },	\
-    { "-fdict",							\
-      ARG_STRING,						\
-      NULL,							\
-      "Noise word pronunciation dictionary input file" },	\
-    { "-dictcase",						\
-      ARG_BOOLEAN,						\
-      "no",							\
-      "Dictionary is case sensitive (NOTE: case insensitivity applies to ASCII characters only)" },	\
-    { "-maxnewoov",						\
-      ARG_INT32,						\
-      "20",							\
-      "Maximum new OOVs that can be added at run time" },	\
-    { "-usewdphones",						\
-      ARG_BOOLEAN,						\
-      "no",							\
+    { "-dict",              \
+      REQARG_STRING,            \
+      NULL,             \
+      "Main pronunciation dictionary (lexicon) input file" }, \
+    { "-fdict",             \
+      ARG_STRING,           \
+      NULL,             \
+      "Noise word pronunciation dictionary input file" }, \
+    { "-dictcase",            \
+      ARG_BOOLEAN,            \
+      "no",             \
+      "Dictionary is case sensitive (NOTE: case insensitivity applies to ASCII characters only)" }, \
+    { "-maxnewoov",           \
+      ARG_INT32,            \
+      "20",             \
+      "Maximum new OOVs that can be added at run time" }, \
+    { "-usewdphones",           \
+      ARG_BOOLEAN,            \
+      "no",             \
       "Use within-word phones only" }
 
 /** Command-line options for acoustic modeling */
