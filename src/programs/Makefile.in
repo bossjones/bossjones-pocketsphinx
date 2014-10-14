@@ -225,7 +225,7 @@ pocketsphinx_batch_LDADD = \
 
 pocketsphinx_continuous_SOURCES = continuous.c
 pocketsphinx_continuous_LDADD = \
-	$(top_builddir)/src/libpocketsphinx/libpocketsphinx.la -lsphinxad -lgearman
+	$(top_builddir)/src/libpocketsphinx/libpocketsphinx.la -lsphinxad
 
 INCLUDES = -I$(top_srcdir)/include \
 	-I$(top_srcdir)/src/libpocketsphinx \
@@ -308,13 +308,13 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-pocketsphinx_batch$(EXEEXT): $(pocketsphinx_batch_OBJECTS) $(pocketsphinx_batch_DEPENDENCIES) 
+pocketsphinx_batch$(EXEEXT): $(pocketsphinx_batch_OBJECTS) $(pocketsphinx_batch_DEPENDENCIES)
 	@rm -f pocketsphinx_batch$(EXEEXT)
 	$(LINK) $(pocketsphinx_batch_OBJECTS) $(pocketsphinx_batch_LDADD) $(LIBS)
-pocketsphinx_continuous$(EXEEXT): $(pocketsphinx_continuous_OBJECTS) $(pocketsphinx_continuous_DEPENDENCIES) 
+pocketsphinx_continuous$(EXEEXT): $(pocketsphinx_continuous_OBJECTS) $(pocketsphinx_continuous_DEPENDENCIES)
 	@rm -f pocketsphinx_continuous$(EXEEXT)
 	$(LINK) $(pocketsphinx_continuous_OBJECTS) $(pocketsphinx_continuous_LDADD) $(LIBS)
-pocketsphinx_mdef_convert$(EXEEXT): $(pocketsphinx_mdef_convert_OBJECTS) $(pocketsphinx_mdef_convert_DEPENDENCIES) 
+pocketsphinx_mdef_convert$(EXEEXT): $(pocketsphinx_mdef_convert_OBJECTS) $(pocketsphinx_mdef_convert_DEPENDENCIES)
 	@rm -f pocketsphinx_mdef_convert$(EXEEXT)
 	$(LINK) $(pocketsphinx_mdef_convert_OBJECTS) $(pocketsphinx_mdef_convert_LDADD) $(LIBS)
 
